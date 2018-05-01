@@ -29,6 +29,7 @@ namespace WhatsAppSeleniumAPI
         private const string READ_MESSAGES_XPATH = "/html[1]/body[1]/div[1]/div[1]/div[1]/div[2]/div[1]/div[3]/div[1]/div[1]/*/div/div/div[@class=\"_2EXPL\"]";
         private const string CHAT_INPUT_TEXT_XPATH = "/html[1]/body[1]/div[1]/div[1]/div[1]/div[3]/div[1]/footer[1]/div[1]/div[2]/div[1]/div[2]";
         private const string ALL_CHATS_TITLE_XPATH = "/html[1]/body[1]/div[1]/div[1]/div[1]/div[2]/div[1]/div[3]/div[1]/div[1]/*/div/div/div/div/div/div[@class=\"_25Ooe\"]";
+        private const string MESSAGE_TIME_CLASS_NAME = "_3EFt_";
 
         public IWebDriver WebDriver
         {
@@ -136,6 +137,7 @@ namespace WhatsAppSeleniumAPI
                         var message_text = GetLastestText(out Pname);
                         Raise_RecievedMessage(message_text, Pname);
                         Console.WriteLine("Отпарвил");
+                        //SetActivePerson("+7 963 017-16-06");
                     }
                     catch (Exception ex)
                     {
@@ -143,8 +145,9 @@ namespace WhatsAppSeleniumAPI
                     }
                 }
 
+                
                 //CurrentDialogScanning
-                if (messages !=null && unread.Count == 0 && messages.Count != GetIncomingMessages().Count() )
+                if (messages !=null && unread.Count == 0 && messages.Count < GetIncomingMessages().Count )
                 {
                     try
                     {
@@ -164,6 +167,12 @@ namespace WhatsAppSeleniumAPI
             }
         }
 
+        public string GetLatestTextTime(IReadOnlyCollection<IWebElement> Messages)
+        {
+            var newmessage = Messages.OrderBy(x => x.Location.Y).Reverse().First(); //Get latest message
+            string time = newmessage.FindElement(By.ClassName(MESSAGE_TIME_CLASS_NAME)).Text;
+            return time;
+        }
 
         public string GetLastestText(out string Pname) 
         {
@@ -171,6 +180,7 @@ namespace WhatsAppSeleniumAPI
             Pname = nametag.GetAttribute("title");
             messages = GetIncomingMessages();
             var newmessage = messages.OrderBy(x => x.Location.Y).Reverse().First(); //Get latest message
+            string time = newmessage.FindElement(By.ClassName("_3EFt_")).Text;
             var message_text_raw = newmessage.FindElement(By.ClassName(SELECTABLE_MESSAGE_TEXT_CLASS));
             return Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", "");
         }

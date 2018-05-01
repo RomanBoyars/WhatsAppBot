@@ -14,12 +14,12 @@ namespace whatsboot
 {
     class Program
     {
-        
+
         static void Main(string[] args)
         {
             Program x = new Program();
             x.MainS(null);
-            
+
         }
 
         IWhatsAppDriver _driver;
@@ -30,6 +30,9 @@ namespace whatsboot
 
         void Start(IWhatsAppDriver driver)
         {
+
+            Commands.Initialize();
+
             _driver = driver;
             driver.StartDriver();
             //Wait till we are on the login page
@@ -48,7 +51,7 @@ namespace whatsboot
             }
             Console.WriteLine("You have logged in");
             driver.OnMsgRecieved += OnMsgRec;
-            Task.Run(() => driver.MessageScanner()); 
+            Task.Run(() => driver.MessageScanner());
 
             Console.WriteLine("Use CTRL+C to exit");
 
@@ -65,30 +68,17 @@ namespace whatsboot
         private void OnMsgRec(IWhatsAppDriver.MsgArgs arg)
         {
             Console.WriteLine(arg.Sender + " Wrote: " + arg.Msg + " at " + arg.TimeStamp);
-            if (arg.Msg.StartsWith("/"))
-            {
-                try
-                {
-                    var ser = new JavaScriptSerializer();
-                    using (var wc = new WebClient())
-                    {
-                        wc.Headers.Add(HttpRequestHeader.Accept, "application/json");
 
-                        if (arg.Msg.ToLower().Contains("привет"))
-                        {
-                            var x = "Привет, я бот";
-                            _driver.SendMessage(x, arg.Sender);
-                            return;
-                        }
+            //try
+            //{
+                _driver.SendMessage(Commands.ProcessMessage(arg.Msg, new User("testID", arg.Sender, "888888888", "TestChatID", "1")), arg.Sender);
+                return;
+            //}
+            //catch (Exception)
+            //{
+            //    return;
+            //}
 
-                    }
-                    return;
-                }
-                catch (Exception)
-                {
-                    return;
-                }
-            }
         }
 
     }
